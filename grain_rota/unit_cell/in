@@ -1,0 +1,42 @@
+#------ initialization ------
+units         metal
+dimension     3
+boundary      p p p
+atom_style    atomic
+neighbor      2.0 bin
+neigh_modify  delay 5
+lattice fcc 3.6150 orient x 1 -1 0 orient y 1 1 -2 orient z 1 1 1
+region       sc prism -10.5 10.5 -10.5 10.5 -5.5 5.5 4.57 0 3 units lattice
+create_box   4 sc
+region       model1 prism INF INF INF INF -5.5 -4.5 0 0 0 units lattice
+region       model2 prism INF INF INF INF -4.3 -3.3 0 0 0 units lattice
+region       model3 prism INF INF INF INF -3.1 0.1 0 0 0 units lattice
+region       model4 prism INF INF INF INF 0.3 2.3 0 0 0 units lattice
+region       model5 prism INF INF INF INF 2.5 5.5 0 0 0 units lattice
+
+create_atoms 1 region model1
+create_atoms 1 region model3
+create_atoms 1 region model5
+
+
+lattice fcc 3.6150 orient x 1 -1 0 orient y 1 1 2 orient z -1 -1 1
+create_atoms 2 region model2
+create_atoms 2 region model4
+#create_atoms 2 region model5
+
+#------ mass ------
+mass         1 63.550
+mass         2 63.550
+#------ force field ------
+pair_style   eam 
+pair_coeff   * * Cu_u3.eam
+
+compute        peratom all pe/atom
+
+dump           1 all custom 50 mini_*.dump id type xs ys zs c_peratom
+#dump_modify  1 sort id scale no
+thermo       50
+thermo_style custom step temp pe
+min_style cg
+minimize 1.0e-20 1.0e-20 5000 100000
+undump 1
